@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Code Editor</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+            background-color: #282c34; /* Dark background color */
+            color: #abb2bf; /* Text color */
+        }
+
+        #editor {
+            flex: 1;
+        }
+
+        #output-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-left: 10px;
+        }
+
+        #output {
+            height: 100%;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #282c34; /* Dark background color */
+            color: #abb2bf; /* Text color */
+        }
+
+        #out {
+            background-color: #282c34; /* Dark background color */
+            color: #abb2bf; /* Text color */
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        label {
+            margin-right: 5px;
+            color: #61afef; /* Same as editor theme's color */
+        }
+
+        select, button {
+            background-color: #3e4451; /* Same as editor theme's background color */
+            color: #abb2bf; /* Same as editor theme's text color */
+            border: none;
+            padding: 5px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #4b5263; /* Slightly darker on hover */
+        }
+    </style>
+</head>
+
+<body>
+    <div id="editor"></div>
+    <div id="output-container">
+        <div id="out">
+            <label for="language">Select Language:</label>
+            <select id="language">
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <!-- Add more language options as needed -->
+            </select>
+            <button onclick="runCode()">Run</button>
+        </div>
+        <div id="output"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <script>
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.getSession().setMode("ace/mode/javascript");
+        editor.getSession().setValue('// Welcome to the Online Code Editor\n\nconsole.log("Hello, World!");');
+
+        editor.setOptions({
+            fontSize: "14pt",
+            showPrintMargin: false,
+            highlightActiveLine: true,
+            wrap: true,
+            autoScrollEditorIntoView: true
+        });
+
+        function runCode() {
+            var code = editor.getSession().getValue();
+            var language = document.getElementById("language").value;
+
+            // Clear the output before running new code
+            document.getElementById("output").innerText = "";
+
+            // Set the Ace editor mode based on the selected language
+            editor.getSession().setMode("ace/mode/" + language);
+
+            // Redirect console.log to capture the output
+            var output = "";
+            var originalConsoleLog = console.log;
+            console.log = function (text) {
+                output += text + "\n";
+            };
+
+            try {
+                // Transpile and execute the code using Babel
+                var transpiledCode = Babel.transform(code, { presets: ["es2015"] }).code;
+                eval(transpiledCode);
+            } catch (error) {
+                console.error(error.message);
+                output = "Error:\n" + error.message;
+            } finally {
+                // Restore the original console.log
+                console.log = originalConsoleLog;
+
+                // Display the captured output in the output div
+                document.getElementById("output").innerText = "Output:\n" + output;
+            }
+        }
+    </script>
+</body>
+
+</html>
